@@ -1,69 +1,38 @@
-#define __CL_ENABLE_EXCEPTIONS
-#include <CL/cl.hpp>
-#include <fstream>
-#include <iostream>
-#include <vector>
+/****************************************************************************
+ * HOST PROGRAM
+ * 1. Define the platform ... platform = devices+context+queues
+ * 2. Create and Build the program (dynamic library for kernels)
+ * 3. Setup memory objects
+ * 4. Define the kernel (attach arguments to kernel function)
+ * 5. Submit commands ... transfer memory objects and execute kernels
+ ****************************************************************************/
 
-cl::Program createProgram(const std::string& file)
-{
-    std::vector<cl::Platform> platforms;
-    cl::Platform::get(&platforms);
-
-    cl::Platform platform = platforms.front();
-
-    std::vector<cl::Device> devices;
-    platform.getDevices(CL_DEVICE_TYPE_ALL, &devices);
-
-    cl::Device device = devices.front();
-
-    // Load text from .cl file and move to string
-    std::ifstream hello_world_file("hello_world.cl");
-    std::string   src(std::istreambuf_iterator<char>(hello_world_file),
-                    (std::istreambuf_iterator<char>()));
-
-    // vector<std::pair<const char*, size_type> >, each element is input text (and its size)
-    cl::Program::Sources sources(1, std::make_pair(src.c_str(), src.length() + 1));
-
-    // Context: environment in which kernels execute
-    // Includes one or multiple devices, device memory, one or multiple command-queues
-    cl::Context context(device);
-
-    // Program: encapsulates context, program sources (from .cl files), target devices and build
-    // options
-    cl::Program program(context, sources);
-
-    auto err = program.build("-cl-std=CL1.2");
-
-    return program;
-}
+#include "opencl_helper.h"
 
 int main()
 {
-    std::vector<cl::Platform> platforms;
-    cl::Platform::get(&platforms);
+    cl::Program             program = createProgram("process_array.cl");
+    cl::Context             context = program.getInfo<CL_PROGRAM_CONTEXT>();
+    std::vector<cl::Device> devices = context.getInfo<CL_CONTEXT_DEVICES>();
+    cl::Device&             device  = devices.front();
 
-    cl::Platform platform = platforms.front();
+    std::vector<int> vec(1024);
+    std::fill(vec.begin(), vec.end(), 1);
 
-    std::vector<cl::Device> devices;
-    platform.getDevices(CL_DEVICE_TYPE_ALL, &devices);
+    cl::Buffer in_buf(context, CL_MEM_READ_ONLY | CL_MEM_HOST_NO_ACCESS | CL_MEM_COPY_HOST_PTR,
+                      sizeof(int) * vec.size(), vec.data());
+    cl::Buffer out_buf(context, CL_MEM_WRITE_ONLY | CL_MEM_HOST_READ_ONLY,
+                       sizeof(int) * vec.size());
+    cl::Kernel kernel(program, "processArray");
+    kernel.setArg(0, in_buf);
+    kernel.setArg(1, out_buf);
 
-    cl::Device device = devices.front();
+    cl::CommandQueue queue(context, device);
+    queue.enqueueFillBuffer(in_buf, 3, sizeof(int) * 10, sizeof(int) * (vec.size() - 10));
+    queue.enqueueNDRangeKernel(kernel, cl::NullRange, cl::NDRange(vec.size()));
+    queue.enqueueReadBuffer(out_buf, CL_FALSE, 0, sizeof(int) * vec.size(), vec.data());
 
-    // Load text from .cl file and move to string
-    std::ifstream hello_world_file("hello_world.cl");
-    std::string   src(std::istreambuf_iterator<char>(hello_world_file),
-                    (std::istreambuf_iterator<char>()));
+    cl::finish();
 
-    // vector<std::pair<const char*, size_type> >, each element is input text (and its size)
-    cl::Program::Sources sources(1, std::make_pair(src.c_str(), src.length() + 1));
-
-    // Context: environment in which kernels execute
-    // Includes one or multiple devices, device memory, one or multiple command-queues
-    cl::Context context(device);
-
-    // Program: encapsulates context, program sources (from .cl files), target devices and build
-    // options
-    cl::Program program(context, sources);
-
-    auto err = program.build("-cl-std=CL1.2");
+    std::cout << vec.at(20) << std::endl;
 }

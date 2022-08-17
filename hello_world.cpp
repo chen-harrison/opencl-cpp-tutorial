@@ -7,13 +7,7 @@
  * 5. Submit commands ... transfer memory objects and execute kernels
  ****************************************************************************/
 
-#define __CL_ENABLE_EXCEPTIONS
 #include "opencl_helper.h"
-
-#include <CL/cl.hpp>
-#include <fstream>
-#include <iostream>
-#include <vector>
 
 int main()
 {

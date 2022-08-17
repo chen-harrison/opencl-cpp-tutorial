@@ -13,8 +13,8 @@ cl::Program createProgram(const std::string& file)
     cl::Device device = devices.front();
 
     // Load text from .cl file and move to string
-    std::ifstream hello_world_file("hello_world.cl");
-    std::string   src(std::istreambuf_iterator<char>(hello_world_file),
+    std::ifstream file_stream(file);
+    std::string   src(std::istreambuf_iterator<char>(file_stream),
                     (std::istreambuf_iterator<char>()));
 
     // vector<std::pair<const char*, size_type> >, each element is input text (and its size)

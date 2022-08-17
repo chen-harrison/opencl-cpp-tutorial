@@ -23,4 +23,5 @@ add_executable(process_array process_array.cpp)
 target_include_directories(process_array PUBLIC
     ${OpenCL_INCLUDE_DIRS})
 target_link_libraries(process_array
-    ${OpenCL_LIBRARIES})
+    ${OpenCL_LIBRARIES}
+    opencl_helper_lib)
