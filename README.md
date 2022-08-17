@@ -1,1 +1,1 @@
-# opencl_cpp_tutorial
+# OpenCL C++ Tutorial
