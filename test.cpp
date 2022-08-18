@@ -17,9 +17,15 @@ int main()
         exit(1);
     }
 
+    std::cout << "Platforms:" << std::endl;
+    for (auto platform : platforms)
+    {
+        std::cout << platform.getInfo<CL_PLATFORM_NAME>() << std::endl;
+    }
+    std::cout << std::endl;
+
     // Select the first in the array of platforms
     cl::Platform platform = platforms.front();
-    std::cout << "Platform name: " << platform.getInfo<CL_PLATFORM_NAME>() << std::endl;
 
     // Get all devices using selected platform
     std::vector<cl::Device> devices;
@@ -32,7 +38,14 @@ int main()
         exit(1);
     }
 
+    std::cout << "Devices:" << std::endl;
+    for (auto device : devices)
+    {
+        std::cout << device.getInfo<CL_DEVICE_NAME>() << std::endl;
+    }
+    std::cout << std::endl;
+
     cl::Device device = devices.front();
-    std::cout << "Device vendor: " << device.getInfo<CL_DEVICE_VENDOR>() << std::endl;
-    std::cout << "Device version: " << device.getInfo<CL_DEVICE_VERSION>() << std::endl;
+    // std::cout << "Device vendor: " << device.getInfo<CL_DEVICE_VENDOR>() << std::endl;
+    // std::cout << "Device version: " << device.getInfo<CL_DEVICE_VERSION>() << std::endl;
 }
