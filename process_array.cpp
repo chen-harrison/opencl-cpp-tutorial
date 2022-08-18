@@ -1,12 +1,3 @@
-/****************************************************************************
- * HOST PROGRAM
- * 1. Define the platform ... platform = devices+context+queues
- * 2. Create and Build the program (dynamic library for kernels)
- * 3. Setup memory objects
- * 4. Define the kernel (attach arguments to kernel function)
- * 5. Submit commands ... transfer memory objects and execute kernels
- ****************************************************************************/
-
 #include "opencl_helper.h"
 
 int main()
@@ -19,6 +10,8 @@ int main()
     std::vector<int> vec(1024);
     std::fill(vec.begin(), vec.end(), 1);
 
+    // input: kernel should only read, host shouldn't read/write, passing vec in via copy
+    // (instead of pin, etc.)
     cl::Buffer in_buf(context, CL_MEM_READ_ONLY | CL_MEM_HOST_NO_ACCESS | CL_MEM_COPY_HOST_PTR,
                       sizeof(int) * vec.size(), vec.data());
     cl::Buffer out_buf(context, CL_MEM_WRITE_ONLY | CL_MEM_HOST_READ_ONLY,
@@ -28,11 +21,16 @@ int main()
     kernel.setArg(1, out_buf);
 
     cl::CommandQueue queue(context, device);
+    // another way to fill buffer, e.g. fill with 3 starting at idx 10
     queue.enqueueFillBuffer(in_buf, 3, sizeof(int) * 10, sizeof(int) * (vec.size() - 10));
     queue.enqueueNDRangeKernel(kernel, cl::NullRange, cl::NDRange(vec.size()));
     queue.enqueueReadBuffer(out_buf, CL_FALSE, 0, sizeof(int) * vec.size(), vec.data());
 
     cl::finish();
 
-    std::cout << vec.at(20) << std::endl;
+    for (int i = 0; i < 20; i++)
+    {
+        std::cout << vec.at(i) << " ";
+    }
+    std::cout << std::endl;
 }

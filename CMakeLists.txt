@@ -25,3 +25,10 @@ target_include_directories(process_array PUBLIC
 target_link_libraries(process_array
     ${OpenCL_LIBRARIES}
     opencl_helper_lib)
+
+add_executable(process_multidim process_multidim.cpp)
+target_include_directories(process_multidim PUBLIC
+    ${OpenCL_INCLUDE_DIRS})
+target_link_libraries(process_multidim
+    ${OpenCL_LIBRARIES}
+    opencl_helper_lib)
